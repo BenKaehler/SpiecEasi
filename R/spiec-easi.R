@@ -133,6 +133,7 @@ NULL
 #' @param icov.select deprecated.
 #' @param icov.select.params deprecated.
 #' @param lambda.log should values of lambda be distributed logarithmically (\code{TRUE}) or linearly ()\code{FALSE}) between \code{lamba.min} and \code{lambda.max}?
+#' @param covariate covariate factors to append after clr
 #' @param ... further arguments to \code{\link{sparseiCov}} / \code{huge}
 #' @method spiec.easi default
 #' @rdname spiec.easi
@@ -142,11 +143,15 @@ spiec.easi.default <- function(data, method='glasso', sel.criterion='stars',
                         verbose=TRUE, pulsar.select=TRUE, pulsar.params=list(),
                         icov.select=pulsar.select,
                         icov.select.params=pulsar.params,
-                        lambda.log=TRUE, ...) {
+                        lambda.log=TRUE, covariate=matrix(), ...) {
 
   args <- list(...)
   if (verbose) msg <- .makeMessage("Applying data transformations...")
   else msg <- .makeMessage('')
+
+  if (!inherits(covariate, 'matrix'))
+    stop('covariate data must be a numeric matrix')
+  covariate <- as.numeric(covariate)
 
   switch(method,
         glasso = {
@@ -154,6 +159,8 @@ spiec.easi.default <- function(data, method='glasso', sel.criterion='stars',
                     estFun <- "sparseiCov"
                     args$method <- method
                     X <- .spiec.easi.norm(data)
+		    if (all(!is.na(covariate)))
+		      X <- cbind(X, covariate)
                     if (is.null(args[['lambda.max']]))
                       args$lambda.max <- getMaxCov(cor(X))
                  },
@@ -163,6 +170,8 @@ spiec.easi.default <- function(data, method='glasso', sel.criterion='stars',
                     estFun <- "sparseiCov"
                     args$method <- method
                     X <- .spiec.easi.norm(data)
+		    if (all(!is.na(covariate)))
+		      X <- cbind(X, covariate)
                     if (is.null(args[['lambda.max']]))
                       args$lambda.max <- getMaxCov(cor(X))
                   },
@@ -170,6 +179,8 @@ spiec.easi.default <- function(data, method='glasso', sel.criterion='stars',
         slr    = {
                     # if (!require('irlba'))
                       # stop('irlba package required')
+		    if (any(!is.na(covariate)))
+                      stop('method "slr" does not support a covariate')
                     if (length(args$r) > 1) { #TODO: add beta vector option
                       tmp <- lapply(args$r, function(r) {
                         if (verbose)
@@ -192,6 +203,8 @@ spiec.easi.default <- function(data, method='glasso', sel.criterion='stars',
                   },
 
         coat   = {
+		    if (any(!is.na(covariate)))
+                      stop('method "coat" does not support a covariate')
                     message(msg, appendLF=verbose)
                     estFun <- "coat"
                     X <- .spiec.easi.norm(data)
@@ -206,12 +219,16 @@ spiec.easi.default <- function(data, method='glasso', sel.criterion='stars',
                     message(msg, appendLF=verbose)
                     estFun <- "neighborhood.net"
                     args$method <- method
+		    if (all(!is.na(covariate)))
+		      X <- cbind(X, covariate)
                     X <- sign(data) ;
                     if (is.null(args[['lambda.max']]))
                       args$lambda.max <- max(abs(t(scale(X)) %*% X)) / nrow(X)
                   },
 
         poisson= {
+		    if (any(!is.na(covariate)))
+                      stop('method "poisson" does not support a covariate')
                   if (inherits(data, 'list'))
                     stop('method "poisson" does not support list data')
 

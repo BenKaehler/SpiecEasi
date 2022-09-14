@@ -23,6 +23,7 @@ spiec.easi(data, ...)
   icov.select = pulsar.select,
   icov.select.params = pulsar.params,
   lambda.log = TRUE,
+  covariate = matrix(),
   ...
 )
 }
@@ -46,6 +47,8 @@ spiec.easi(data, ...)
 \item{icov.select.params}{deprecated.}
 
 \item{lambda.log}{should values of lambda be distributed logarithmically (\code{TRUE}) or linearly ()\code{FALSE}) between \code{lamba.min} and \code{lambda.max}?}
+
+\item{covariate}{covariate factors to append after clr}
 }
 \description{
 Run the whole SPIEC-EASI pipeline, from data transformation, sparse inverse covariance estimation and model selection.
